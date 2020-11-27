@@ -1,4 +1,3 @@
-import math
 
 def generate(num=10):
     for i in range (num):
