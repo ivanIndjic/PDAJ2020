@@ -8,8 +8,9 @@ def generate(num=10):
 def isPrime(num=10):
     numbers = generate(num)
     for i in numbers:
-        for j in range(2,int(i)+1):
+        for j in range(2,i+1):
             if j == i:
+                print(i)
                 yield i
             if i % j == 0:
                 break
@@ -25,13 +26,10 @@ def toHex(num):
 def createDict(num):
     diction = {}
     for i in toHex(num):
-        xindex = str(i).find("x")
-        rightside = str(i)[xindex+1:len(i)]
+        rightside = str(i)[str(i).find("x")+1:len(i)]
         for j in rightside:
-            if j in diction:
-                diction[j] += 1
-            else:
-                diction[j] = 1
+            diction[j]=diction[j]+1 if j in diction else 1
+
     return diction
         
 print(createDict(20))
