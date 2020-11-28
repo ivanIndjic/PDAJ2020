@@ -5,8 +5,7 @@ def generate(num=10):
 
 
 def isPrime(num=10):
-    numbers = generate(num)
-    for i in numbers:
+    for i in generate(num):
         for j in range(2,i+1):
             if j == i:
                 print(i)
