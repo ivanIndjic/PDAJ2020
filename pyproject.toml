@@ -6,6 +6,8 @@ authors = ["Ivan"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+Django = "^3.1.4"
+django-rest-framework = "^0.1.0"
 
 [tool.poetry.dev-dependencies]
 
