@@ -5,7 +5,7 @@ import tracemalloc
 def generateNumbers(n):
     if isPrime(n):
         return toHex(n)
-    
+
 def isPrime(element):
     flag = True
     for i in range(2, math.floor(math.sqrt(element))+1):
