@@ -190,7 +190,7 @@ def ParMain(request):
     dump = json.dumps(json_response)
     cordDict = {}
     return HttpResponse(dump,content_type='application/json')
-
+'''
 def MainSeq(request):
     cordDict = {}
     newcords = []
@@ -263,3 +263,4 @@ def MainComprehension(request):
     results["max_memory_in_MB"] = peak / 10**6
     dump = json.dumps(results)
     return HttpResponse(dump,content_type='application/json')
+    '''
