@@ -25,14 +25,6 @@ def CalculateGenerator(n,m,coords,cordDict):
         min_distance = min(distanceMap.items(), key=lambda x: x[1])
         yield cordDict.get(min_distance[0])
 
-def CreateJson(m,n,coords,dict):
-    results = []
-    for i in CalculateGenerator(m,n,coords,dict):
-        results.append(i)
-    json_response = {
-        "result": results
-    }
-    return json_response
 #######################################################################
 
 ###############################Parallel################################
@@ -143,6 +135,8 @@ class GenCalculationsAPI(APIView):
 def MainGen(request):
     newcords = []
     cordDict = {}
+    results = []
+
     tracemalloc.start()
     start_time = time.time()
     for i in range(0,len(request.data["points"])):
@@ -150,12 +144,16 @@ def MainGen(request):
         newcords.append((int(x),int(y)))
     for i in range(0,len(newcords)):
         cordDict[newcords[i]] = i
-    results = CreateJson(request.data["n"], request.data["m"], newcords, cordDict)
+    for i in CalculateGenerator(request.data["n"], request.data["m"],newcords,cordDict):
+        results.append(i)
+    json_response = {
+            "result": results
+        }
     _, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
-    results["time_in_s"] = time.time() - start_time
-    results["max_memory_in_MB"] = peak / 10**6
-    dump = json.dumps(results)
+    json_response["time_in_s"] = time.time() - start_time
+    json_response["max_memory_in_MB"] = peak / 10**6
+    dump = json.dumps(json_response)
     return HttpResponse(dump,content_type='application/json')
 
 

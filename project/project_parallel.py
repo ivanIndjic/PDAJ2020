@@ -37,8 +37,8 @@ def main():
     with Pool(4) as pool:
         r = pool.imap(Calculate, GenerateMatrix(newcords, n, m),chunksize=n)
         res = list(r)
-        #display_results(res,n,m,coords)
-        #show_table(res,n,m,coords)
+        display_results(res,n,m,coords)
+        show_table(res,n,m,coords)
     current, peak = tracemalloc.get_traced_memory()
     times = time.time() - start_time
     print(f"Current memory usage is {current / 10**6}MB; Peak was {peak / 10**6}MB")
