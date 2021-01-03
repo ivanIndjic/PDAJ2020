@@ -40,7 +40,6 @@ def main():
     for i in range(0,len(newcords)):
         cordDict[newcords[i]] = i
     res = Calculate(n,m,newcords)
-  #  display_results(res,n,m,coords)
     current, peak = tracemalloc.get_traced_memory()
     print(f"Current memory usage is {current / 10**6}MB; Peak was {peak / 10**6}MB")
     times = time.time() - start_time
@@ -48,6 +47,8 @@ def main():
     tracemalloc.stop()
     print(times)
    # show_table(res,n,m,coords)
+   #  display_results(res,n,m,coords)
+
 
 if __name__ == "__main__":
     main()
