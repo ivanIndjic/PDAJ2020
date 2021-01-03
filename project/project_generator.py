@@ -10,7 +10,6 @@ def GenerateMatrix(n, m):
             yield (i,j)
 
 def Calculate(m,n,coords):
-   # cordDict = {coords[i]: i for i in range(0,len(coords))}
     distanceMap = {}
     for point in GenerateMatrix(m,n):
         pointX,pointY = point

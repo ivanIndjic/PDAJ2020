@@ -3,13 +3,18 @@ import json
 import matplotlib.pyplot as plt
 import random
 
-n = 1000
-m = 1000
-#points = ["1,3", "3,2", "6,8", "9,6", "5,5"]
-#points = ["1,3","3,2","6,8","9,6","5,5","12,12","66,3","13,2","6,38","9,16","5,35","52,2"]
-points = ["11,300","9,420","1,3", "3,2", "6,8", "9,6", "5,5","15,15","76,54","89,430","336,423","211,211","350,350","426,18","0,500","7,420","766,894","999,3","876,542","667,718","319,54","1,800","803,20"]
+n = 10
+m = 10
+points = ["1,3", "3,2", "6,8", "9,6", "5,5"]
+#points = ["11,300","9,420","1,3", "3,2", "6,8", "9,6", "5,5","15,15","76,54","89,430","336,423","211,211","350,350","426,18","0,500","7,420","766,894","999,3","876,542","667,718","319,54","1,800","803,20"]
 
-url = 'http://localhost:8000/calc/par/'
+url = 'http://localhost:8000/calc/gen/'
+
+#url = 'http://localhost:8000/calc/par/'
+
+#url = 'http://localhost:8000/calc/seq/'
+
+#url = 'http://localhost:8000/calc/comp/'
 
 json_data = {
 	"n": n,
@@ -74,8 +79,8 @@ def main():
 	results, time_in_s, max_memory_in_MB = get_results(url, points)
 	print(f"Time is {time_in_s}s")
 	print(f"Max memory is {max_memory_in_MB}MB")
-	#display_results(results, n, m, points)
-	#show_table(results, n, m, points)
+	display_results(results, n, m, points)
+	show_table(results, n, m, points)
 
 
 if __name__ == "__main__":

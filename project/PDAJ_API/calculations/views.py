@@ -7,7 +7,6 @@ import tracemalloc
 from django.http import HttpResponse
 from multiprocessing import Pool
 
-cordDict = {}
 
 # Create your views here.
 ####################Generators###############################3
@@ -16,7 +15,7 @@ def GenerateMatrixGenerator(n, m):
         for j in range(0,m):
             yield (i,j)
 
-def CalculateGenerator(n,m,coords):
+def CalculateGenerator(n,m,coords,cordDict):
     distanceMap = {}
     for point in GenerateMatrixGenerator(m,n):
         pointX,pointY = point
@@ -26,9 +25,9 @@ def CalculateGenerator(n,m,coords):
         min_distance = min(distanceMap.items(), key=lambda x: x[1])
         yield cordDict.get(min_distance[0])
 
-def CreateJson(m,n,coords):
+def CreateJson(m,n,coords,dict):
     results = []
-    for i in CalculateGenerator(m,n,coords):
+    for i in CalculateGenerator(m,n,coords,dict):
         results.append(i)
     json_response = {
         "result": results
@@ -37,13 +36,13 @@ def CreateJson(m,n,coords):
 #######################################################################
 
 ###############################Parallel################################
-def GenerateMatrixParallel(coords, n, m):
+def GenerateMatrixParallel(coords, n, m, dict):
     for i in range(0,n):
         for j in range(0,m):
-            yield (coords,(i,j))
+            yield (coords,(i,j), dict)
 
 def CalculateParallel(args):
-    coords, point = args
+    coords, point, cordDict = args
     distanceMap = {}
     pointX,pointY = point
     for coord in coords:
@@ -83,21 +82,21 @@ def GenerateMatrixComprehension(n, m):
 
 def CalculateComprehension(m,n,coords):
     cordDict = {coords[i]: i for i in range(0,len(coords))}
-    distanceMap = {}
+    distanceMap={}
     finalList = []
     for point in GenerateMatrixComprehension(m,n):
         pointX,pointY = point
-        for coord in coords:
-            x,y = coord.split(",")
-            x,y = int(x),int(y)
-            distance = math.sqrt((pointX-x)**2 + (pointY-y)**2)
-            distanceMap[coord] = distance
+        distanceMap = dict((coord,transform(coord,pointX,pointY)) for coord in coords)
         min_distance = min(distanceMap.items(), key=lambda x: x[1])
         finalList.append(cordDict.get(min_distance[0]))
     json_response = {
         "result": finalList
     }
     return json_response
+
+def transform (coord,pointX,pointY):
+    x,y = coord.split(",")
+    return math.sqrt((pointX-int(x))**2 + (pointY-int(y))**2)
 ########################################################################
 class SeqCalculationsAPI(APIView):
     def post(self,request):
@@ -119,7 +118,6 @@ def SeqMain(request):
     results["time_in_s"] = time.time() - start_time
     results["max_memory_in_MB"] = peak / 10**6
     dump = json.dumps(results)
-    cordDict = {}
     return HttpResponse(dump,content_type='application/json')
 
 
@@ -152,12 +150,11 @@ def MainGen(request):
         newcords.append((int(x),int(y)))
     for i in range(0,len(newcords)):
         cordDict[newcords[i]] = i
-    results = CreateJson(request.data["n"], request.data["m"], newcords)
+    results = CreateJson(request.data["n"], request.data["m"], newcords, cordDict)
     _, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
     results["time_in_s"] = time.time() - start_time
     results["max_memory_in_MB"] = peak / 10**6
-    cordDict = {}
     dump = json.dumps(results)
     return HttpResponse(dump,content_type='application/json')
 
@@ -178,7 +175,7 @@ def ParMain(request):
     for i in range(0,len(newcords)):
         cordDict[newcords[i]] = i
     with Pool(4) as pool:
-        r = pool.imap(CalculateParallel, GenerateMatrixParallel(newcords, request.data["n"], request.data["m"]),chunksize=request.data["n"])
+        r = pool.imap(CalculateParallel, GenerateMatrixParallel(newcords, request.data["n"], request.data["m"], cordDict),chunksize=request.data["n"])
         results = list(r)
     _, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
@@ -188,79 +185,4 @@ def ParMain(request):
     json_response["time_in_s"] = time.time() - start_time
     json_response["max_memory_in_MB"] = peak / 10**6
     dump = json.dumps(json_response)
-    cordDict = {}
     return HttpResponse(dump,content_type='application/json')
-'''
-def MainSeq(request):
-    cordDict = {}
-    newcords = []
-    tracemalloc.start()
-    start_time = time.time()
-    for i in range(0,len(request.data["points"])):
-        x,y = request.data["points"][i].split(",")
-        newcords.append((int(x),int(y)))
-    for i in range(0,len(newcords)):
-        cordDict[newcords[i]] = i
-    results = Calculate(request.data["n"], request.data["m"], newcords,cordDict)
-    _, peak = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-    results["time_in_s"] = time.time() - start_time
-    results["max_memory_in_MB"] = peak / 10**6
-    dump = json.dumps(results)
-    cordDict = {}
-    return HttpResponse(dump,content_type='application/json')
-def MainGenerator(request):
-    newcords = []
-    cordDict = {}
-    tracemalloc.start()
-    start_time = time.time()
-    for i in range(0,len(request.data["points"])):
-        x,y = request.data["points"][i].split(",")
-        newcords.append((int(x),int(y)))
-    for i in range(0,len(newcords)):
-        cordDict[newcords[i]] = i
-    results = CreateJson(request.data["n"], request.data["m"], newcords)
-    _, peak = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-    results["time_in_s"] = time.time() - start_time
-    results["max_memory_in_MB"] = peak / 10**6
-    cordDict = {}
-    dump = json.dumps(results)
-    return HttpResponse(dump,content_type='application/json')
-
-def MainParallel(request):
-    cordDict = {}
-    newcords = []
-    results = []
-    tracemalloc.start()
-    start_time = time.time()
-    for i in range(0,len(request.data["points"])):
-        x,y = request.data["points"][i].split(",")
-        newcords.append((int(x),int(y)))
-    for i in range(0,len(newcords)):
-        cordDict[newcords[i]] = i
-    with Pool(4) as pool:
-        r = pool.imap(CalculateParallel, GenerateMatrixParallel(newcords, request.data["n"], request.data["m"]),chunksize=request.data["n"])
-        results = list(r)
-    #results = CreateJson(request.data["n"], request.data["m"], newcords)
-    json_response = {
-        "result": results
-    }
-    _, peak = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-    json_response["time_in_s"] = time.time() - start_time
-    json_response["max_memory_in_MB"] = peak / 10**6
-    dump = json.dumps(json_response)
-    cordDict = {}
-    return HttpResponse(dump,content_type='application/json')
-def MainComprehension(request):
-    tracemalloc.start()
-    start_time = time.time()
-    results = CalculateComprehension(request.data["n"], request.data["m"], request.data["points"])
-    _, peak = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-    results["time_in_s"] = time.time() - start_time
-    results["max_memory_in_MB"] = peak / 10**6
-    dump = json.dumps(results)
-    return HttpResponse(dump,content_type='application/json')
-    '''
